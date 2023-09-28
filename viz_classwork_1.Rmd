@@ -7,9 +7,16 @@ output: github_document
 
 #Viz 
 
+you can change how all the graphs in your document are displayed at once using the knitr function
 ```{r set up}
 library(tidyverse)
 library(ggridges)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
 ```
 
 
@@ -213,5 +220,24 @@ like a density plot, but spread out vertically
 ```{r}
 ggplot(weather_df, aes(x = tmax, y = name)) +
   geom_density_ridges()
+```
+
+## saving and embedding plots
+
+```{r}
+ggp_weather =  
+  weather_df |> 
+  ggplot(aes(x=tmin, y = tmax)) +
+  geom_point()
+
+print(ggp_weather)
+
+ggsave("Results/ggp_weather.pdf", ggp_weather)
+```
+
+
+you can rename code chunk to change how the graph is formatted in your output document
+```{r, fig.width = 6, fig.asp = .6}
+ggp_weather
 ```
 

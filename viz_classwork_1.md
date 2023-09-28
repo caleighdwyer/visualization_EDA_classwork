@@ -22,6 +22,12 @@ library(tidyverse)
 
 ``` r
 library(ggridges)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
 ```
 
 ``` r
@@ -118,7 +124,7 @@ ggplot(weather_df, aes(x = tmin, y = tmax)) +
 
     ## Warning: Removed 17 rows containing missing values (`geom_point()`).
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
 
 Pipes and stuff
 
@@ -131,7 +137,7 @@ weather_df |>
   geom_point ()
 ```
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-3-1.png" width="90%" />
 
 ``` r
 ggp_nyc_weather = 
@@ -160,7 +166,7 @@ ggplot(weather_df, aes(x = tmin, y= tmax, color = name)) +
 
     ## Warning: Removed 17 rows containing missing values (`geom_point()`).
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
 
 \##plot with facets
 
@@ -181,7 +187,7 @@ ggplot(weather_df, aes(x = tmin, y = tmax, color = name)) +
 
     ## Warning: Removed 17 rows containing missing values (`geom_point()`).
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 let’s try a different plot. temps are boring
 
@@ -198,7 +204,7 @@ ggplot(weather_df, aes(x = date, y = tmax, color = name))+
 
     ## Warning: Removed 19 rows containing missing values (`geom_point()`).
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
 
 try assigning a specific color….
 
@@ -209,7 +215,7 @@ weather_df |>
   geom_point(color = "blue")
 ```
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
 
 ``` r
 ##the below won't work! it thinks blue is a variable in the dataset
@@ -219,7 +225,7 @@ weather_df |>
   geom_point()
 ```
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-7-2.png" width="90%" />
 
 ``` r
 weather_df |> 
@@ -230,6 +236,144 @@ weather_df |>
 
     ## Warning: Removed 17 rows containing missing values (`geom_point()`).
 
-![](viz_classwork_1_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-7-3.png" width="90%" />
 
 but for now, don’t try to assign specific colors.
+
+geom hex creates density mapping
+
+``` r
+weather_df |> 
+  ggplot(aes(x=tmin, y=tmax))+
+  geom_hex()
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_binhex()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+
+line plot
+
+connects the plots in your data with a line (you can add individ pionts
+with geom_point). useful for longitudinal data
+
+``` r
+weather_df |> 
+  filter(name == "Molokai_HI") |> 
+  ggplot(aes(x = date, y = tmax)) + 
+  geom_line(alpha = .5) +
+  geom_point(size = .5)
+```
+
+    ## Warning: Removed 1 rows containing missing values (`geom_point()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+
+\#univariate plotting
+
+histogram
+
+fill = name shows diff colors for diff variables
+
+position dodge prevents stacking of data on bars, but be mindful of
+whether or not you really need a histogram
+
+``` r
+ggplot(weather_df, aes(x=tmax, fill = name))+
+  geom_histogram(position = "dodge")
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_bin()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
+
+let’s use a density plot this creates a histogram but then smooths out
+the bars so you can compare Adjust changes the “smoothness” of the
+density plot, which is important if there are small spikes in data that
+you don’t want to miss
+
+``` r
+ggplot(weather_df, aes(x=tmax, fill= name))+
+  geom_density(alpha=.3, adjust = .7)
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_density()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
+
+using box plots
+
+``` r
+ggplot(weather_df, aes(y = tmax, x = name)) +
+  geom_boxplot()
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_boxplot()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+
+violin plots
+
+creates a verticle density plot, so you can view a density plot like a
+box plot
+
+``` r
+ggplot(weather_df, aes(y = tmax, x = name)) +
+  geom_violin()
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_ydensity()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
+
+ridge plot
+
+like a density plot, but spread out vertically
+
+``` r
+ggplot(weather_df, aes(x = tmax, y = name)) +
+  geom_density_ridges()
+```
+
+    ## Picking joint bandwidth of 1.54
+
+    ## Warning: Removed 17 rows containing non-finite values
+    ## (`stat_density_ridges()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />
+
+## saving and embedding plots
+
+``` r
+ggp_weather =  
+  weather_df |> 
+  ggplot(aes(x=tmin, y = tmax)) +
+  geom_point()
+
+print(ggp_weather)
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" />
+
+``` r
+ggsave("Results/ggp_weather.pdf", ggp_weather)
+```
+
+    ## Saving 6 x 3.6 in image
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+you can rename code chunk to change how the graph is formatted in your
+output document
+
+``` r
+ggp_weather
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="viz_classwork_1_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" />
