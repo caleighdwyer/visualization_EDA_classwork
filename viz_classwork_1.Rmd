@@ -146,4 +146,72 @@ weather_df |>
 
 but for now, don't try to assign specific colors.
 
+geom hex creates density mapping
+
+```{r}
+weather_df |> 
+  ggplot(aes(x=tmin, y=tmax))+
+  geom_hex()
+
+```
+
+
+line plot
+
+connects the plots in your data with a line (you can add individ pionts with geom_point). useful for longitudinal data
+```{r}
+weather_df |> 
+  filter(name == "Molokai_HI") |> 
+  ggplot(aes(x = date, y = tmax)) + 
+  geom_line(alpha = .5) +
+  geom_point(size = .5)
+```
+
+
+#univariate plotting
+
+histogram
+
+fill = name shows diff colors for diff variables
+
+position dodge prevents stacking of data on bars, but be mindful of whether or not you really need a histogram
+```{r}
+ggplot(weather_df, aes(x=tmax, fill = name))+
+  geom_histogram(position = "dodge")
+```
+
+
+
+let's use a density plot
+this creates a histogram but then smooths out the bars so you can compare
+Adjust changes the "smoothness" of the density plot, which is important if there are small spikes in data that you don't want to miss
+```{r}
+ggplot(weather_df, aes(x=tmax, fill= name))+
+  geom_density(alpha=.3, adjust = .7)
+```
+
+using box plots
+
+```{r}
+ggplot(weather_df, aes(y = tmax, x = name)) +
+  geom_boxplot()
+```
+
+
+violin plots
+
+creates a verticle density plot, so you can view a density plot like a box plot
+```{r}
+ggplot(weather_df, aes(y = tmax, x = name)) +
+  geom_violin()
+```
+
+
+ridge plot
+
+like a density plot, but spread out vertically
+```{r}
+ggplot(weather_df, aes(x = tmax, y = name)) +
+  geom_density_ridges()
+```
 
