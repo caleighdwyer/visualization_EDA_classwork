@@ -7,12 +7,19 @@ output: github_document
 
 ```{r set up}
 library(tidyverse)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
   fig.asp = .6,
   out.width = "90%"
 )
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+
+
+##you can set up the theme and color palatte in your set up
 ```
 
 
@@ -21,8 +28,8 @@ weather_df =
   rnoaa::meteo_pull_monitors(
     c("USW00094728", "USW00022534", "USS0023B17S"),
     var = c("PRCP", "TMIN", "TMAX"), 
-    date_min = "2021-01-01",
-    date_max = "2022-12-31") |>
+    date_min = "2022-01-01",
+    date_max = "2023-12-31") |>
   mutate(
     name = recode(
       id, 
@@ -34,6 +41,7 @@ weather_df =
   select(name, id, everything())
 ```
 
+^^if you update the dataset, all the code should still work
 
 ```{r}
 weather_df |> 
@@ -70,5 +78,158 @@ weather_df |>
 ##change color of points with scale_color_hue. we generally prefer using viridis color pallette because it is more accessible (if someone is colorblind it's still legible, if it gets printed in black and white then it's still legible)
 ```
 
+
+##themes
+
+```{r}
+weather_df |> 
+  ggplot(aes(x=tmin, y=tmax, color=name)) +
+  geom_point(alpha=0.5) +
+  labs(
+    x= "Min daily temp (degrees C)",
+    y="max daily temp",
+    color = "location",
+    title = "Temperature plot",
+    caption = "Max vs. min daily temp in three locations; data from rnoaa"
+  )+
+  viridis::scale_color_viridis(discrete = TRUE)+
+  ##theme_bw()
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+  
+  
+##where the legend is has nothing to do with variable plotting, so we use theme to change it
+##theme_bw changes background color of plot. but you must run it before legend position because it is a global preference. so if you run legend position first, it will be overwritten by theme_bw
+##there's a barbie theme, wes anderson theme, there are a lot of them out there
+```
+
+
+## data argument ...
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = date, y = tmax))+
+  geom_point(aes(color = name)) +
+  geom_smooth()
+
+nyc_weather_df = 
+  weather_df |> 
+  filter(name == "CentralPark_NY")
+
+hawaii_weather_df = 
+  weather_df |> 
+  filter(name == "Molokai_HI")
+
+ggplot(nyc_weather_df, aes(x = date, y = tmax, color = name))+
+  geom_point()+
+  geom_line(data = hawaii_weather_df)
+
+
+##where you define aesthetic matters to the underlying geometry. the order matters, what aesthetic you set first will overwrite anything in subsequent lines
+
+##sometimes it's easiest to have separate dataframes for the things you want to compare and then plot those dataframes together rather than try to manipulate data in the same dataset for the same plots
+```
+
+
+##patchwork
+
+```{r}
+weather_df |> 
+  ggplot(aes(x = date, y = tmax, color = name)) +
+  geom_point()+
+  facet_grid(.~name)
+
+#faceting basically duplicates the same plot across. to stitch together different kinds of plots, you must first create different plots.
+
+```
+
+
+```{r}
+ggp_temp_scatter =
+  weather_df |> 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha=.5)+
+  theme(legend.position = "none")
+
+
+ggp_prcp_density = 
+  weather_df |>
+  filter(prcp > 25) |> 
+  ggplot(aes(x= prcp, fill = name))+
+  geom_density(alpha=.5)+
+  theme(legend.position = "bottom")
+
+ggp_tmax_date =
+  weather_df |> 
+  ggplot(aes(x=date, y =tmax, color = name))+
+  geom_point()+
+  geom_smooth(se = FALSE)+
+  theme(legend.position = "bottom")
+  
+
+(ggp_temp_scatter + gg_prcp_density)/ggp_tmax_date
+
+##this is stitching together multiple different types of plots
+```
+^this didn't work for me...
+
+##data manipulation
+
+```{r}
+weather_df |> 
+  mutate(
+    name = fct_relevel(name, c("Molokai_HI", "CentralPark_NY", "Waterhole_WA"))
+  ) |> 
+  ggplot(aes(x=name, y = tmax))+
+  geom_boxplot()
+
+##factor variable -- categorical variable that has an order (ordinal). character vector has no structure, no order. when ggplot has to figure out the order of how things are plotted, it converts it into a factor variable. it uses alphabetical order by default.
+
+weather_df |> 
+  mutate(
+    name = fct_reorder(name, tmax)
+  ) |> 
+  ggplot(aes(x=name, y=tmax, fill=name))+
+  geom_violin()
+
+##if you have a lot of factors, it is easier to organize them with reorder rather than relevel. this is logical way to organize plots (they are organized by max temp)
+##ggplot code is not complicated. what IS complicated is getting data tidy enough to do more complex comparisons.
+```
+
+
+##complicate FAS plot
+
+```{r}
+litters_df = 
+  read_csv("data/FAS_litters.csv") |> 
+  janitor::clean_names() |> 
+  separate (group, into = c("dose", "day_of_tx"), sep= 3)
+  
+pups_df=
+  read_csv("data/FAS_pups.csv") |> 
+  janitor::clean_names()
+  
+fas_df =
+left_join(pups_df, litters_df, by = "litter_number")
+
+fas_df |> 
+  select(dose, day_of_tx, starts_with("pd")) |> 
+  pivot_longer(
+    pd_ears:pd_walk,
+    names_to = "outcome",
+    values_to = "pn_day"
+  ) |> 
+  drop_na() |> 
+  mutate(outcome = fct_reorder(outcome, pn_day)) |> 
+  ggplot(aes(x=dose, y = pn_day))+
+  geom_violin()+
+  facet_grid(day_of_tx ~ dose)
+  
+  ##sep = 3 tells R to separate at the third character
+## select just keeps the columns you want
+
+```
+^^ values_to didn't work, said "unexpected symbol"
 
 
