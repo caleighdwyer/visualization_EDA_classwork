@@ -51,16 +51,24 @@ weather_df |>
     labels = c("-15 C", "0", "15")
   )+
   scale_y_continuous(
-    position = "right",
-    limits = c(20, 30)
+    position = "right"
+    ##limits = c(20, 30)
     ##trans = "sqrt"
-  )
- 
+  )+
+  ##scale_color_hue(h = c(100,300))
+  viridis::scale_color_viridis(discrete = TRUE)
+
+
 ##labs helps you change labels for axes, color key, title, caption, etc.
 ##scale_x_continuous helps you adjust scale of plot
 ## you can do a log transformation or square root transformation of the scale using "trans"
  
  ## you can add limits to the y or x scale with "limits"
+
+##continuous variables have different color options from categorical variables
+
+##change color of points with scale_color_hue. we generally prefer using viridis color pallette because it is more accessible (if someone is colorblind it's still legible, if it gets printed in black and white then it's still legible)
 ```
+
 
 
