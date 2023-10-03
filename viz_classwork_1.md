@@ -5,6 +5,9 @@ Caleigh Dwyer
 
 \#Viz
 
+you can change how all the graphs in your document are displayed at once
+using the knitr function
+
 ``` r
 library(tidyverse)
 ```
