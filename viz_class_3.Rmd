@@ -5,26 +5,120 @@ date: "2023-10-05"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+Exploratory analysis (EDA)!
+
+```{r set up}
+library(tidyverse)
+library(ggridges)
+library(lubridate)
+
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+weather_df <- 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USW00022534", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2022-01-01",
+    date_max = "2023-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USW00022534 = "Molokai_HI",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, everything())
+  
 ```
 
-## Including Plots
+^chunk didn't work for me
 
-You can also embed plots, for example:
+##initial numeric work
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+weather_df |> 
+  ggplot(aes(x=prcp)) +
+  geom_histogram()
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+here are the big outliers:
+
+```{r}
+weather_df |> 
+  filter(prcp > 1000)
+```
+
+
+```{r}
+weather_df |> 
+  filter(tmax>= 20, tmax <= 30) |> 
+  ggplot(aes(x=tmin, y= tmax, color = name)) +
+  geom_point()
+
+```
+
+##grouping
+
+```{r}
+weather_df |> 
+  group_by(name, month) |> 
+  summarize(n_obs = n())
+```
+
+```{r}
+weather_df |> 
+  count(name, name = "n_obs")
+```
+
+```{r}
+
+weather_df |> 
+  count(name, month) |> 
+  pivot_wider(
+    names_from = name,
+    values_from = n
+  )
+```
+
+
+##general summaries
+
+```{r}
+weather_df |> 
+  group_by (name) |> 
+  summarize(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    sd_tmax = sd(tmax, na.rm = TRUE),
+    median_tmax = median (tmax, na.rm = TRUE)
+  ##take averages after removing missing values
+  )
+```
+
+
+```{r}
+weather_df |> 
+  group_by(name, month) |> 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) |> 
+  ggplot(aes(x=month, y=mean_tmax, color = name)) + 
+  geom_point()+
+  geom_line()
+```
+
+
+```{r}
+weather_df |> 
+  group_by(name,month) |> 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) |> 
+  pivot_wider(
+    names_from = name,
+    values_from = mean_tmax
+  ) |> 
+  knitr::kable(digits=2)
+##knitr function displays a more organized table in the knit document
+  
+```
+
