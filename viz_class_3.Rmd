@@ -122,3 +122,58 @@ weather_df |>
   
 ```
 
+##grouped mutate
+
+```{r}
+weather_df |> 
+  group_by(name) |> 
+  mutate(mean_tmax = mean(tmax, na.rm= TRUE)) |> view()
+```
+
+
+```{r}
+weather_df |> 
+  group_by(name) |> 
+  mutate(
+    mean_tmax = mean(tmax, na.rm= TRUE),
+    centered_tmax = tmax-mean_tmax) |> 
+  ggplot(aes(x=date, y=centered_tmax, color=name))+
+  geom_point()
+ 
+```
+
+window functions, helpful for ranking things (e.g. findnig the coldest day)
+
+```{r}
+weather_df |> 
+  group_by(name, month) |> 
+  mutate(tmax_rank = min_rank(desc(tmax))) |> 
+  filter(tmax_rank <2)
+
+##this shows the hottest day per month
+```
+
+
+lags
+
+```{r}
+weather_df |> 
+  group_by(name) |> 
+  mutate(yesterday_tmax = lag(tmax))
+
+##this shows yesterday's weather in same row as today's weather so you can compare.
+##if you don't specify grouping, the lag will just choose whatever is three rows back.
+```
+
+
+```{r}
+weather_df |> 
+  group_by(name) |> 
+  mutate(temp_change = tmax - lag(tmax)) |> 
+  summarize(
+    sd_temp_change = sd(temp_change, na.rm = TRUE)
+  )
+
+## this will show you the temperature change between yesterday and today, then you can show the variation in temp change using sd
+```
+
